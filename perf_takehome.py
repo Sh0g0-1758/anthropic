@@ -132,20 +132,6 @@ class KernelBuilder:
         hash_const_six_two_v = self.alloc_scratch("hash_const_six_two_v", VLEN)
         forest_values_base_v = self.alloc_scratch("forest_values_base", VLEN)
         _n_nodes_v = self.alloc_scratch("n_nodes_v", VLEN)
-        
-        # vector scratch registers
-        tmp_idx_1         = self.alloc_scratch("tmp_idx_1", VLEN)
-        tmp_val_1         = self.alloc_scratch("tmp_val_1", VLEN)
-        tmp_node_val_1    = self.alloc_scratch("tmp_node_val_1", VLEN)
-        tmp_addr_forest_1 = self.alloc_scratch("tmp_addr_forest_1", VLEN)
-        tmp1_v          = self.alloc_scratch("tmp1_v", VLEN)
-        tmp2_v          = self.alloc_scratch("tmp2_v", VLEN)
-        tmp_idx_2         = self.alloc_scratch("tmp_idx_2", VLEN)
-        tmp_val_2         = self.alloc_scratch("tmp_val_2", VLEN)
-        tmp_node_val_2    = self.alloc_scratch("tmp_node_val_2", VLEN)
-        tmp_addr_forest_2 = self.alloc_scratch("tmp_addr_forest_2", VLEN)
-        tmp3_v          = self.alloc_scratch("tmp3_v", VLEN)
-        tmp4_v          = self.alloc_scratch("tmp4_v", VLEN)
 
         self.instrs.append({
             "load": [
@@ -238,8 +224,10 @@ class KernelBuilder:
 
         self.add("debug", ("comment", "Starting loop"))
         
+        num_batches = batch_size // VLEN
+
         iterator_constants = []
-        for i in range(batch_size // VLEN):
+        for i in range(num_batches):
             if i == 0:
                 iterator_constants.append(zero_const)
             elif (i * VLEN) == 16:
@@ -248,29 +236,60 @@ class KernelBuilder:
                 iterator_constants.append(self.scratch_const(i * VLEN))
 
         address_constants = []
-        for i in range(batch_size // VLEN):
+        for i in range(num_batches):
             address_constants.append(self.alloc_scratch(f"tmp_addr_index_{i}", 1))
             address_constants.append(self.alloc_scratch(f"tmp_addr_value_{i}", 1))
     
-        for i in range(0, batch_size // VLEN, 6):
+        for i in range(0, num_batches, 6):
             alu_slots = []
 
-            for j in range(i, min(i + 6, batch_size // VLEN)):
+            for j in range(i, min(i + 6, num_batches)):
                 alu_slots.append(("+", address_constants[2 * j], _inp_indices_p, iterator_constants[j]))
                 alu_slots.append(("+", address_constants[2 * j + 1], _inp_values_p, iterator_constants[j]))
             
             self.instrs.append({"alu": alu_slots})
+        
+        scratch_registers = []
+        pipeline_factor = 1
+        for i in range(pipeline_factor):
+            scratch_registers.append(self.alloc_scratch(f"tmp_idx_{i}", VLEN))
+            scratch_registers.append(self.alloc_scratch(f"tmp_val_{i}", VLEN))
+            scratch_registers.append(self.alloc_scratch(f"tmp_node_val_{i}", VLEN))
+            scratch_registers.append(self.alloc_scratch(f"tmp_addr_forest_{i}", VLEN))
+            scratch_registers.append(self.alloc_scratch(f"tmp1_v_{i}", VLEN))
+            scratch_registers.append(self.alloc_scratch(f"tmp1_v_{i}", VLEN))
 
         for round in range(rounds):
-            for i in range(0, batch_size // VLEN, 1):
+            for i in range(0, (num_batches // pipeline_factor), 1):
+                address_offset = pipeline_factor * 2 * i
+
+                tmp_idx_1 = scratch_registers[0]
+                tmp_val_1 = scratch_registers[1]
+                tmp_node_val_1 = scratch_registers[2]
+                tmp_addr_forest_1 = scratch_registers[3]
+                tmp1_v_1 = scratch_registers[4]
+                tmp2_v_1 = scratch_registers[5]
+                
+                tmp_addr_index_1 = address_constants[address_offset]
+                tmp_addr_value_1 = address_constants[address_offset + 1]
+                
                 # idx = mem[inp_indices_p + i]
                 # val = mem[inp_values_p + i]
-                self.instrs.append({"load": [("vload", tmp_idx_1, address_constants[2 * i]), ("vload", tmp_val_1, address_constants[2 * i + 1])]})
+                self.instrs.append({
+                    "load": [
+                        ("vload", tmp_idx_1, tmp_addr_index_1), 
+                        ("vload", tmp_val_1, tmp_addr_value_1)
+                    ]
+                })
                 self.instrs.append({"debug": [("vcompare", tmp_idx_1, [(round, i * VLEN + k, "idx") for k in range(8)] )]})
                 self.instrs.append({"debug": [("vcompare", tmp_val_1, [(round, i * VLEN + k, "val") for k in range(8)] )]})
 
                 # node_val = mem[forest_values_p + idx]
-                self.instrs.append({"valu": [("+", tmp_addr_forest_1, forest_values_base_v, tmp_idx_1)]})
+                self.instrs.append({
+                    "valu": [
+                        ("+", tmp_addr_forest_1, forest_values_base_v, tmp_idx_1)
+                    ]
+                })
                 self.instrs.append({"load": [("load_offset", tmp_node_val_1, tmp_addr_forest_1, 0), ("load_offset", tmp_node_val_1, tmp_addr_forest_1, 1)]})
                 self.instrs.append({"load": [("load_offset", tmp_node_val_1, tmp_addr_forest_1, 2), ("load_offset", tmp_node_val_1, tmp_addr_forest_1, 3)]})
                 self.instrs.append({"load": [("load_offset", tmp_node_val_1, tmp_addr_forest_1, 4), ("load_offset", tmp_node_val_1, tmp_addr_forest_1, 5)]})
@@ -289,40 +308,40 @@ class KernelBuilder:
                         ("^", 0xB55A4F09, "^", ">>", 16),
                     ]
                 '''
-                self.instrs.append({"valu": [("+", tmp1_v, tmp_val_1, hash_const_one_one_v), ("<<", tmp2_v, tmp_val_1, hash_const_one_two_v)]})
-                self.instrs.append({"valu": [("+", tmp_val_1, tmp1_v, tmp2_v)]})
+                self.instrs.append({"valu": [("+", tmp1_v_1, tmp_val_1, hash_const_one_one_v), ("<<", tmp2_v_1, tmp_val_1, hash_const_one_two_v)]})
+                self.instrs.append({"valu": [("+", tmp_val_1, tmp1_v_1, tmp2_v_1)]})
 
-                self.instrs.append({"valu": [("^", tmp1_v, tmp_val_1, hash_const_two_one_v), (">>", tmp2_v, tmp_val_1, hash_const_two_two_v)]})
-                self.instrs.append({"valu": [("^", tmp_val_1, tmp1_v, tmp2_v)]})
+                self.instrs.append({"valu": [("^", tmp1_v_1, tmp_val_1, hash_const_two_one_v), (">>", tmp2_v_1, tmp_val_1, hash_const_two_two_v)]})
+                self.instrs.append({"valu": [("^", tmp_val_1, tmp1_v_1, tmp2_v_1)]})
 
-                self.instrs.append({"valu": [("+", tmp1_v, tmp_val_1, hash_const_three_one_v), ("<<", tmp2_v, tmp_val_1, hash_const_three_two_v)]})
-                self.instrs.append({"valu": [("+", tmp_val_1, tmp1_v, tmp2_v)]})
+                self.instrs.append({"valu": [("+", tmp1_v_1, tmp_val_1, hash_const_three_one_v), ("<<", tmp2_v_1, tmp_val_1, hash_const_three_two_v)]})
+                self.instrs.append({"valu": [("+", tmp_val_1, tmp1_v_1, tmp2_v_1)]})
 
-                self.instrs.append({"valu": [("+", tmp1_v, tmp_val_1, hash_const_four_one_v), ("<<", tmp2_v, tmp_val_1, hash_const_four_two_v)]})
-                self.instrs.append({"valu": [("^", tmp_val_1, tmp1_v, tmp2_v)]})
+                self.instrs.append({"valu": [("+", tmp1_v_1, tmp_val_1, hash_const_four_one_v), ("<<", tmp2_v_1, tmp_val_1, hash_const_four_two_v)]})
+                self.instrs.append({"valu": [("^", tmp_val_1, tmp1_v_1, tmp2_v_1)]})
 
-                self.instrs.append({"valu": [("+", tmp1_v, tmp_val_1, hash_const_five_one_v), ("<<", tmp2_v, tmp_val_1, hash_const_five_two_v)]})
-                self.instrs.append({"valu": [("+", tmp_val_1, tmp1_v, tmp2_v)]})
+                self.instrs.append({"valu": [("+", tmp1_v_1, tmp_val_1, hash_const_five_one_v), ("<<", tmp2_v_1, tmp_val_1, hash_const_five_two_v)]})
+                self.instrs.append({"valu": [("+", tmp_val_1, tmp1_v_1, tmp2_v_1)]})
                 
-                self.instrs.append({"valu": [("^", tmp1_v, tmp_val_1, hash_const_six_one_v), (">>", tmp2_v, tmp_val_1, hash_const_six_two_v)]})
-                self.instrs.append({"valu": [("^", tmp_val_1, tmp1_v, tmp2_v)]})
+                self.instrs.append({"valu": [("^", tmp1_v_1, tmp_val_1, hash_const_six_one_v), (">>", tmp2_v_1, tmp_val_1, hash_const_six_two_v)]})
+                self.instrs.append({"valu": [("^", tmp_val_1, tmp1_v_1, tmp2_v_1)]})
                 self.instrs.append({"debug": [("vcompare", tmp_val_1, [(round, i * VLEN + k, "hashed_val") for k in range(8)])]})
 
                 # idx = 2 * idx + (1 if val % 2 == 0 else 2)
-                self.instrs.append({"valu": [("%", tmp1_v, tmp_val_1, two_const_v), ("*", tmp_idx_1, tmp_idx_1, two_const_v)]})
-                self.instrs.append({"valu": [("==", tmp1_v, tmp1_v, zero_const_v)]})
-                self.instrs.append({"flow": [("vselect", tmp1_v, tmp1_v, one_const_v, two_const_v)]})
-                self.instrs.append({"valu": [("+", tmp_idx_1, tmp_idx_1, tmp1_v)]})
+                self.instrs.append({"valu": [("%", tmp1_v_1, tmp_val_1, two_const_v), ("*", tmp_idx_1, tmp_idx_1, two_const_v)]})
+                self.instrs.append({"valu": [("==", tmp1_v_1, tmp1_v_1, zero_const_v)]})
+                self.instrs.append({"flow": [("vselect", tmp1_v_1, tmp1_v_1, one_const_v, two_const_v)]})
+                self.instrs.append({"valu": [("+", tmp_idx_1, tmp_idx_1, tmp1_v_1)]})
                 self.instrs.append({"debug": [("vcompare", tmp_idx_1, [(round, i * VLEN + k, "next_idx") for k in range(8)])]})
 
                 # idx = 0 if idx >= n_nodes else idx
-                self.instrs.append({"valu": [("<", tmp1_v, tmp_idx_1, _n_nodes_v)]})
-                self.instrs.append({"flow": [("vselect", tmp_idx_1, tmp1_v, tmp_idx_1, zero_const_v)]})
+                self.instrs.append({"valu": [("<", tmp1_v_1, tmp_idx_1, _n_nodes_v)]})
+                self.instrs.append({"flow": [("vselect", tmp_idx_1, tmp1_v_1, tmp_idx_1, zero_const_v)]})
                 self.instrs.append({"debug": [("vcompare", tmp_idx_1, [(round, i * VLEN + k, "wrapped_idx") for k in range(8)])]})
 
                 # mem[inp_indices_p + i] = idx
                 # mem[inp_values_p + i] = val
-                self.instrs.append({"store": [("vstore", address_constants[2 * i], tmp_idx_1), ("vstore", address_constants[2 * i + 1], tmp_val_1)]})
+                self.instrs.append({"store": [("vstore", tmp_addr_index_1, tmp_idx_1), ("vstore", tmp_addr_value_1, tmp_val_1)]})
 
         self.instrs.append({"flow": [("pause",)]})
 
