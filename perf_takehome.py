@@ -250,7 +250,7 @@ class KernelBuilder:
             self.instrs.append({"alu": alu_slots})
         
         scratch_registers = []
-        pipeline_factor = 2
+        pipeline_factor = 4
         for i in range(pipeline_factor):
             scratch_registers.append(self.alloc_scratch(f"tmp_idx_{i}", VLEN))
             scratch_registers.append(self.alloc_scratch(f"tmp_val_{i}", VLEN))
@@ -276,12 +276,32 @@ class KernelBuilder:
                 tmp_addr_forest_2 = scratch_registers[9]
                 tmp1_v_2 = scratch_registers[10]
                 tmp2_v_2 = scratch_registers[11]
-                
+
+                tmp_idx_3 = scratch_registers[12]
+                tmp_val_3 = scratch_registers[13]
+                tmp_node_val_3 = scratch_registers[14]
+                tmp_addr_forest_3 = scratch_registers[15]
+                tmp1_v_3 = scratch_registers[16]
+                tmp2_v_3 = scratch_registers[17]
+
+                tmp_idx_4 = scratch_registers[18]
+                tmp_val_4 = scratch_registers[19]
+                tmp_node_val_4 = scratch_registers[20]
+                tmp_addr_forest_4 = scratch_registers[21]
+                tmp1_v_4 = scratch_registers[22]
+                tmp2_v_4 = scratch_registers[23]
+
                 tmp_addr_index_1 = address_constants[address_offset]
                 tmp_addr_value_1 = address_constants[address_offset + 1]
-                
+
                 tmp_addr_index_2 = address_constants[address_offset + 2]
                 tmp_addr_value_2 = address_constants[address_offset + 3]
+                
+                tmp_addr_index_3 = address_constants[address_offset + 4]
+                tmp_addr_value_3 = address_constants[address_offset + 5]
+
+                tmp_addr_index_4 = address_constants[address_offset + 6]
+                tmp_addr_value_4 = address_constants[address_offset + 7]
 
                 # idx = mem[inp_indices_p + i]
                 # val = mem[inp_values_p + i]
@@ -336,61 +356,66 @@ class KernelBuilder:
                 })
                 # self.instrs.append({"debug":[("vcompare", tmp_node_val_2, [(round, (2 * i + 1) * VLEN + k, "node_val") for k in range(8)])]})
                 self.instrs.append({
-                    "valu": [("^", tmp_val_1, tmp1_v_1, tmp2_v_1), ("^", tmp_val_2, tmp_val_2, tmp_node_val_2)]
+                    "valu": [("^", tmp_val_1, tmp1_v_1, tmp2_v_1), ("^", tmp_val_2, tmp_val_2, tmp_node_val_2)],
+                    "load": [("vload", tmp_idx_3, tmp_addr_index_3), ("vload", tmp_val_3, tmp_addr_value_3)]
                 })
 
                 self.instrs.append({
-                    "valu": [("+", tmp1_v_1, tmp_val_1, hash_const_three_one_v), ("<<", tmp2_v_1, tmp_val_1, hash_const_three_two_v), ("+", tmp1_v_2, tmp_val_2, hash_const_one_one_v), ("<<", tmp2_v_2, tmp_val_2, hash_const_one_two_v)]
+                    "valu": [("+", tmp1_v_1, tmp_val_1, hash_const_three_one_v), ("<<", tmp2_v_1, tmp_val_1, hash_const_three_two_v), ("+", tmp1_v_2, tmp_val_2, hash_const_one_one_v), ("<<", tmp2_v_2, tmp_val_2, hash_const_one_two_v), ("+", tmp_addr_forest_3, forest_values_base_v, tmp_idx_3)]
                 })
                 self.instrs.append({
-                    "valu": [("+", tmp_val_1, tmp1_v_1, tmp2_v_1), ("+", tmp_val_2, tmp1_v_2, tmp2_v_2)]
-                })
-
-                self.instrs.append({
-                    "valu": [("+", tmp1_v_1, tmp_val_1, hash_const_four_one_v), ("<<", tmp2_v_1, tmp_val_1, hash_const_four_two_v), ("^", tmp1_v_2, tmp_val_2, hash_const_two_one_v), (">>", tmp2_v_2, tmp_val_2, hash_const_two_two_v)]
-                })
-                self.instrs.append({
-                    "valu": [("^", tmp_val_1, tmp1_v_1, tmp2_v_1), ("^", tmp_val_2, tmp1_v_2, tmp2_v_2)]
+                    "valu": [("+", tmp_val_1, tmp1_v_1, tmp2_v_1), ("+", tmp_val_2, tmp1_v_2, tmp2_v_2)],
+                    "load": [("load_offset", tmp_node_val_3, tmp_addr_forest_3, 0), ("load_offset", tmp_node_val_3, tmp_addr_forest_3, 1)],
                 })
 
                 self.instrs.append({
-                    "valu": [("+", tmp1_v_1, tmp_val_1, hash_const_five_one_v), ("<<", tmp2_v_1, tmp_val_1, hash_const_five_two_v), ("+", tmp1_v_2, tmp_val_2, hash_const_three_one_v), ("<<", tmp2_v_2, tmp_val_2, hash_const_three_two_v)]
+                    "valu": [("+", tmp1_v_1, tmp_val_1, hash_const_four_one_v), ("<<", tmp2_v_1, tmp_val_1, hash_const_four_two_v), ("^", tmp1_v_2, tmp_val_2, hash_const_two_one_v), (">>", tmp2_v_2, tmp_val_2, hash_const_two_two_v)],
+                    "load": [("load_offset", tmp_node_val_3, tmp_addr_forest_3, 2), ("load_offset", tmp_node_val_3, tmp_addr_forest_3, 3)]
                 })
                 self.instrs.append({
-                    "valu": [("+", tmp_val_1, tmp1_v_1, tmp2_v_1), ("+", tmp_val_2, tmp1_v_2, tmp2_v_2)]
+                    "valu": [("^", tmp_val_1, tmp1_v_1, tmp2_v_1), ("^", tmp_val_2, tmp1_v_2, tmp2_v_2)],
+                    "load": [("load_offset", tmp_node_val_3, tmp_addr_forest_3, 4), ("load_offset", tmp_node_val_3, tmp_addr_forest_3, 5)]
+                })
+
+                self.instrs.append({
+                    "valu": [("+", tmp1_v_1, tmp_val_1, hash_const_five_one_v), ("<<", tmp2_v_1, tmp_val_1, hash_const_five_two_v), ("+", tmp1_v_2, tmp_val_2, hash_const_three_one_v), ("<<", tmp2_v_2, tmp_val_2, hash_const_three_two_v)],
+                    "load": [("load_offset", tmp_node_val_3, tmp_addr_forest_3, 6), ("load_offset", tmp_node_val_3, tmp_addr_forest_3, 7)]
+                })
+                self.instrs.append({
+                    "valu": [("+", tmp_val_1, tmp1_v_1, tmp2_v_1), ("+", tmp_val_2, tmp1_v_2, tmp2_v_2), ("^", tmp_val_3, tmp_val_3, tmp_node_val_3)]
                 })
                 
                 self.instrs.append({
-                    "valu": [("^", tmp1_v_1, tmp_val_1, hash_const_six_one_v), (">>", tmp2_v_1, tmp_val_1, hash_const_six_two_v), ("+", tmp1_v_2, tmp_val_2, hash_const_four_one_v), ("<<", tmp2_v_2, tmp_val_2, hash_const_four_two_v)]
+                    "valu": [("^", tmp1_v_1, tmp_val_1, hash_const_six_one_v), (">>", tmp2_v_1, tmp_val_1, hash_const_six_two_v), ("+", tmp1_v_2, tmp_val_2, hash_const_four_one_v), ("<<", tmp2_v_2, tmp_val_2, hash_const_four_two_v), ("+", tmp1_v_3, tmp_val_3, hash_const_one_one_v), ("<<", tmp2_v_3, tmp_val_3, hash_const_one_two_v)]
                 })
                 self.instrs.append({
-                    "valu": [("^", tmp_val_1, tmp1_v_1, tmp2_v_1), ("^", tmp_val_2, tmp1_v_2, tmp2_v_2)]
+                    "valu": [("^", tmp_val_1, tmp1_v_1, tmp2_v_1), ("^", tmp_val_2, tmp1_v_2, tmp2_v_2), ("+", tmp_val_3, tmp1_v_3, tmp2_v_3)]
                 })
                 # self.instrs.append({"debug": [("vcompare", tmp_val_1, [(round, i * VLEN + k, "hashed_val") for k in range(8)])]})
 
                 # idx = 2 * idx + (1 if val % 2 == 0 else 2)
                 self.instrs.append({
-                    "valu": [("%", tmp1_v_1, tmp_val_1, two_const_v), ("*", tmp_idx_1, tmp_idx_1, two_const_v), ("+", tmp1_v_2, tmp_val_2, hash_const_five_one_v), ("<<", tmp2_v_2, tmp_val_2, hash_const_five_two_v)]
+                    "valu": [("%", tmp1_v_1, tmp_val_1, two_const_v), ("*", tmp_idx_1, tmp_idx_1, two_const_v), ("+", tmp1_v_2, tmp_val_2, hash_const_five_one_v), ("<<", tmp2_v_2, tmp_val_2, hash_const_five_two_v), ("^", tmp1_v_3, tmp_val_3, hash_const_two_one_v), (">>", tmp2_v_3, tmp_val_3, hash_const_two_two_v)]
                 })
                 self.instrs.append({
-                    "valu": [("==", tmp1_v_1, tmp1_v_1, zero_const_v), ("+", tmp_val_2, tmp1_v_2, tmp2_v_2)]
+                    "valu": [("==", tmp1_v_1, tmp1_v_1, zero_const_v), ("+", tmp_val_2, tmp1_v_2, tmp2_v_2), ("^", tmp_val_3, tmp1_v_3, tmp2_v_3)]
                 })
                 self.instrs.append({
                     "flow": [("vselect", tmp1_v_1, tmp1_v_1, one_const_v, two_const_v)],
-                    "valu": [("^", tmp1_v_2, tmp_val_2, hash_const_six_one_v), (">>", tmp2_v_2, tmp_val_2, hash_const_six_two_v)]
+                    "valu": [("^", tmp1_v_2, tmp_val_2, hash_const_six_one_v), (">>", tmp2_v_2, tmp_val_2, hash_const_six_two_v), ("+", tmp1_v_3, tmp_val_3, hash_const_three_one_v), ("<<", tmp2_v_3, tmp_val_3, hash_const_three_two_v)]
                 })
                 self.instrs.append({
-                    "valu": [("+", tmp_idx_1, tmp_idx_1, tmp1_v_1), ("^", tmp_val_2, tmp1_v_2, tmp2_v_2)]
+                    "valu": [("+", tmp_idx_1, tmp_idx_1, tmp1_v_1), ("^", tmp_val_2, tmp1_v_2, tmp2_v_2), ("+", tmp_val_3, tmp1_v_3, tmp2_v_3)]
                 })
                 # self.instrs.append({"debug": [("vcompare", tmp_idx_1, [(round, i * VLEN + k, "next_idx") for k in range(8)])]})
 
                 # idx = 0 if idx >= n_nodes else idx
                 self.instrs.append({
-                    "valu": [("<", tmp1_v_1, tmp_idx_1, _n_nodes_v), ("%", tmp1_v_2, tmp_val_2, two_const_v), ("*", tmp_idx_2, tmp_idx_2, two_const_v)]
+                    "valu": [("<", tmp1_v_1, tmp_idx_1, _n_nodes_v), ("%", tmp1_v_2, tmp_val_2, two_const_v), ("*", tmp_idx_2, tmp_idx_2, two_const_v), ("+", tmp1_v_3, tmp_val_3, hash_const_four_one_v), ("<<", tmp2_v_3, tmp_val_3, hash_const_four_two_v)]
                 })
                 self.instrs.append({
                     "flow": [("vselect", tmp_idx_1, tmp1_v_1, tmp_idx_1, zero_const_v)],
-                     "valu": [("==", tmp1_v_2, tmp1_v_2, zero_const_v)]
+                     "valu": [("==", tmp1_v_2, tmp1_v_2, zero_const_v), ("^", tmp_val_3, tmp1_v_3, tmp2_v_3)]
                 })
                 # self.instrs.append({"debug": [("vcompare", tmp_idx_1, [(round, i * VLEN + k, "wrapped_idx") for k in range(8)])]})
 
@@ -398,23 +423,40 @@ class KernelBuilder:
                 # mem[inp_values_p + i] = val
                 self.instrs.append({
                     "store": [("vstore", tmp_addr_index_1, tmp_idx_1), ("vstore", tmp_addr_value_1, tmp_val_1)],
-                    "flow":  [("vselect", tmp1_v_2, tmp1_v_2, one_const_v, two_const_v)]
+                    "flow":  [("vselect", tmp1_v_2, tmp1_v_2, one_const_v, two_const_v)],
+                    "valu":  [("+", tmp1_v_3, tmp_val_3, hash_const_five_one_v), ("<<", tmp2_v_3, tmp_val_3, hash_const_five_two_v)]
                 })
                 
                 self.instrs.append({
-                    "valu": [("+", tmp_idx_2, tmp_idx_2, tmp1_v_2)]
+                    "valu": [("+", tmp_idx_2, tmp_idx_2, tmp1_v_2), ("+", tmp_val_3, tmp1_v_3, tmp2_v_3)]
                 })
 
                 self.instrs.append({
-                    "valu": [("<", tmp1_v_2, tmp_idx_2, _n_nodes_v)]
+                    "valu": [("<", tmp1_v_2, tmp_idx_2, _n_nodes_v), ("^", tmp1_v_3, tmp_val_3, hash_const_six_one_v), (">>", tmp2_v_3, tmp_val_3, hash_const_six_two_v)]
                 })
                 self.instrs.append({
                     "flow": [("vselect", tmp_idx_2, tmp1_v_2, tmp_idx_2, zero_const_v)],
+                    "valu": [("^", tmp_val_3, tmp1_v_3, tmp2_v_3)]
                 })
 
                 self.instrs.append({
                     "store": [("vstore", tmp_addr_index_2, tmp_idx_2), ("vstore", tmp_addr_value_2, tmp_val_2)],
+                    "valu": [("%", tmp1_v_3, tmp_val_3, two_const_v), ("*", tmp_idx_3, tmp_idx_3, two_const_v)]
                 })
+                
+                self.instrs.append({"valu": [("==", tmp1_v_3, tmp1_v_3, zero_const_v)]})
+                self.instrs.append({"flow": [("vselect", tmp1_v_3, tmp1_v_3, one_const_v, two_const_v)]})
+                self.instrs.append({"valu": [("+", tmp_idx_3, tmp_idx_3, tmp1_v_3)]})
+                # self.instrs.append({"debug": [("vcompare", tmp_idx_3, [(round, i * VLEN + k, "next_idx") for k in range(8)])]})
+
+                # idx = 0 if idx >= n_nodes else idx
+                self.instrs.append({"valu": [("<", tmp1_v_3, tmp_idx_3, _n_nodes_v)]})
+                self.instrs.append({"flow": [("vselect", tmp_idx_3, tmp1_v_3, tmp_idx_3, zero_const_v)]})
+                # self.instrs.append({"debug": [("vcompare", tmp_idx_3, [(round, i * VLEN + k, "wrapped_idx") for k in range(8)])]})
+
+                # mem[inp_indices_p + i] = idx
+                # mem[inp_values_p + i] = val
+                self.instrs.append({"store": [("vstore", tmp_addr_index_3, tmp_idx_3), ("vstore", tmp_addr_value_3, tmp_val_3)]})
 
         self.instrs.append({"flow": [("pause",)]})
 
