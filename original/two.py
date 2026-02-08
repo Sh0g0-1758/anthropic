@@ -269,6 +269,7 @@ class Machine:
     def load(self, core, *slot):
         match slot:
             case ("load", dest, addr):
+                # print(dest, addr, core.scratch[addr])
                 self.scratch_write[dest] = self.mem[core.scratch[addr]]
             case ("load_offset", dest, addr, offset):
                 # Handy for treating vector dest and addr as a full block in the mini-compiler if you want

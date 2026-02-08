@@ -1,0 +1,137 @@
+forest_height=5, rounds=1, batch_size=16
+i =  0
+instr =  {'load': [('const', 63, 63), ('const', 64, 7)]}
+STEP START
+name =  load  slots =  [('const', 63, 63), ('const', 64, 7)]  slot length =  2
+STEP END
+instr =  {'load': [('const', 65, 70), ('const', 66, 86)]}
+STEP START
+name =  load  slots =  [('const', 65, 70), ('const', 66, 86)]  slot length =  2
+STEP END
+instr =  {'load': [('const', 24, 0), ('const', 25, 1)]}
+STEP START
+name =  load  slots =  [('const', 24, 0), ('const', 25, 1)]  slot length =  2
+STEP END
+instr =  {'load': [('const', 26, 2)]}
+STEP START
+name =  load  slots =  [('const', 26, 2)]  slot length =  1
+STEP END
+instr =  {'load': [('const', 51, 2127912214), ('const', 52, 12)], 'valu': [('vbroadcast', 27, 24), ('vbroadcast', 35, 25), ('vbroadcast', 43, 26)]}
+STEP START
+name =  load  slots =  [('const', 51, 2127912214), ('const', 52, 12)]  slot length =  2
+name =  valu  slots =  [('vbroadcast', 27, 24), ('vbroadcast', 35, 25), ('vbroadcast', 43, 26)]  slot length =  3
+STEP END
+instr =  {'load': [('const', 53, 3345072700), ('const', 54, 19)]}
+STEP START
+name =  load  slots =  [('const', 53, 3345072700), ('const', 54, 19)]  slot length =  2
+STEP END
+instr =  {'load': [('const', 55, 374761393), ('const', 56, 5)]}
+STEP START
+name =  load  slots =  [('const', 55, 374761393), ('const', 56, 5)]  slot length =  2
+STEP END
+instr =  {'load': [('const', 57, 3550635116), ('const', 58, 9)]}
+STEP START
+name =  load  slots =  [('const', 57, 3550635116), ('const', 58, 9)]  slot length =  2
+STEP END
+instr =  {'load': [('const', 59, 4251993797), ('const', 60, 3)]}
+STEP START
+name =  load  slots =  [('const', 59, 4251993797), ('const', 60, 3)]  slot length =  2
+STEP END
+instr =  {'load': [('const', 61, 3042594569), ('const', 62, 16)]}
+STEP START
+name =  load  slots =  [('const', 61, 3042594569), ('const', 62, 16)]  slot length =  2
+STEP END
+instr =  {'flow': [('pause',)]}
+STEP START
+name =  flow  slots =  [('pause',)]  slot length =  1
+STEP END
+CYCLES:  11
+[189316337, 780643264, 27550302, 755728866, 492052422, 871274603, 128261235, 617836022, 1062530857, 501165093, 1038977242, 381371052, 330200686, 954556312, 813016187, 990625748]
+[189316337, 780643264, 27550302, 755728866, 492052422, 871274603, 128261235, 617836022, 1062530857, 501165093, 1038977242, 381371052, 330200686, 954556312, 813016187, 990625748]
+CYCLES:  11
+i =  1
+instr =  {'debug': [('comment', 'Starting loop')]}
+STEP START
+name =  debug  slots =  [('comment', 'Starting loop')]  slot length =  1
+STEP END
+instr =  {'load': [('const', 101, 0)]}
+STEP START
+name =  load  slots =  [('const', 101, 0)]  slot length =  1
+STEP END
+instr =  {'alu': [('+', 91, 65, 101), ('+', 92, 66, 101)], 'load': [('vload', 67, 91), ('vload', 75, 92)]}
+STEP START
+name =  alu  slots =  [('+', 91, 65, 101), ('+', 92, 66, 101)]  slot length =  2
+name =  load  slots =  [('vload', 67, 91), ('vload', 75, 92)]  slot length =  2
+STEP END
+instr =  {'valu': [('vbroadcast', 93, 64), ('+', 93, 93, 67)], 'load': [('vload', 83, 93)]}
+STEP START
+name =  valu  slots =  [('vbroadcast', 93, 64), ('+', 93, 93, 67)]  slot length =  2
+name =  load  slots =  [('vload', 83, 93)]  slot length =  1
+STEP END
+instr =  {'valu': [('^', 75, 75, 83), ('+', 0, 75, 51), ('<<', 8, 75, 52), ('+', 75, 0, 8), ('^', 0, 75, 53), ('>>', 8, 75, 54)]}
+STEP START
+name =  valu  slots =  [('^', 75, 75, 83), ('+', 0, 75, 51), ('<<', 8, 75, 52), ('+', 75, 0, 8), ('^', 0, 75, 53), ('>>', 8, 75, 54)]  slot length =  6
+STEP END
+instr =  {'valu': [('^', 75, 0, 8), ('+', 0, 75, 55), ('<<', 8, 75, 56), ('+', 75, 0, 8), ('+', 0, 75, 57), ('<<', 8, 75, 58)]}
+STEP START
+name =  valu  slots =  [('^', 75, 0, 8), ('+', 0, 75, 55), ('<<', 8, 75, 56), ('+', 75, 0, 8), ('+', 0, 75, 57), ('<<', 8, 75, 58)]  slot length =  6
+STEP END
+instr =  {'valu': [('^', 75, 0, 8), ('+', 0, 75, 59), ('<<', 8, 75, 60), ('+', 75, 0, 8), ('^', 0, 75, 61), ('>>', 8, 75, 62)]}
+STEP START
+name =  valu  slots =  [('^', 75, 0, 8), ('+', 0, 75, 59), ('<<', 8, 75, 60), ('+', 75, 0, 8), ('^', 0, 75, 61), ('>>', 8, 75, 62)]  slot length =  6
+STEP END
+instr =  {'valu': [('^', 75, 0, 8), ('%', 0, 75, 43), ('==', 0, 0, 27), ('*', 67, 67, 43)], 'flow': [('vselect', 16, 0, 35, 43)]}
+STEP START
+name =  valu  slots =  [('^', 75, 0, 8), ('%', 0, 75, 43), ('==', 0, 0, 27), ('*', 67, 67, 43)]  slot length =  4
+name =  flow  slots =  [('vselect', 16, 0, 35, 43)]  slot length =  1
+STEP END
+instr =  {'valu': [('+', 67, 67, 16), ('<', 0, 67, 63)], 'flow': [('vselect', 67, 0, 67, 27)], 'store': [('vstore', 91, 67), ('vstore', 92, 75)]}
+STEP START
+name =  valu  slots =  [('+', 67, 67, 16), ('<', 0, 67, 63)]  slot length =  2
+name =  flow  slots =  [('vselect', 67, 0, 67, 27)]  slot length =  1
+name =  store  slots =  [('vstore', 91, 67), ('vstore', 92, 75)]  slot length =  2
+STEP END
+instr =  {'load': [('const', 102, 8)]}
+STEP START
+name =  load  slots =  [('const', 102, 8)]  slot length =  1
+STEP END
+instr =  {'alu': [('+', 91, 65, 102), ('+', 92, 66, 102)], 'load': [('vload', 67, 91), ('vload', 75, 92)]}
+STEP START
+name =  alu  slots =  [('+', 91, 65, 102), ('+', 92, 66, 102)]  slot length =  2
+name =  load  slots =  [('vload', 67, 91), ('vload', 75, 92)]  slot length =  2
+STEP END
+instr =  {'valu': [('vbroadcast', 93, 64), ('+', 93, 93, 67)], 'load': [('vload', 83, 93)]}
+STEP START
+name =  valu  slots =  [('vbroadcast', 93, 64), ('+', 93, 93, 67)]  slot length =  2
+name =  load  slots =  [('vload', 83, 93)]  slot length =  1
+STEP END
+instr =  {'valu': [('^', 75, 75, 83), ('+', 0, 75, 51), ('<<', 8, 75, 52), ('+', 75, 0, 8), ('^', 0, 75, 53), ('>>', 8, 75, 54)]}
+STEP START
+name =  valu  slots =  [('^', 75, 75, 83), ('+', 0, 75, 51), ('<<', 8, 75, 52), ('+', 75, 0, 8), ('^', 0, 75, 53), ('>>', 8, 75, 54)]  slot length =  6
+STEP END
+instr =  {'valu': [('^', 75, 0, 8), ('+', 0, 75, 55), ('<<', 8, 75, 56), ('+', 75, 0, 8), ('+', 0, 75, 57), ('<<', 8, 75, 58)]}
+STEP START
+name =  valu  slots =  [('^', 75, 0, 8), ('+', 0, 75, 55), ('<<', 8, 75, 56), ('+', 75, 0, 8), ('+', 0, 75, 57), ('<<', 8, 75, 58)]  slot length =  6
+STEP END
+instr =  {'valu': [('^', 75, 0, 8), ('+', 0, 75, 59), ('<<', 8, 75, 60), ('+', 75, 0, 8), ('^', 0, 75, 61), ('>>', 8, 75, 62)]}
+STEP START
+name =  valu  slots =  [('^', 75, 0, 8), ('+', 0, 75, 59), ('<<', 8, 75, 60), ('+', 75, 0, 8), ('^', 0, 75, 61), ('>>', 8, 75, 62)]  slot length =  6
+STEP END
+instr =  {'valu': [('^', 75, 0, 8), ('%', 0, 75, 43), ('==', 0, 0, 27), ('*', 67, 67, 43)], 'flow': [('vselect', 16, 0, 35, 43)]}
+STEP START
+name =  valu  slots =  [('^', 75, 0, 8), ('%', 0, 75, 43), ('==', 0, 0, 27), ('*', 67, 67, 43)]  slot length =  4
+name =  flow  slots =  [('vselect', 16, 0, 35, 43)]  slot length =  1
+STEP END
+instr =  {'valu': [('+', 67, 67, 16), ('<', 0, 67, 63)], 'flow': [('vselect', 67, 0, 67, 27)], 'store': [('vstore', 91, 67), ('vstore', 92, 75)]}
+STEP START
+name =  valu  slots =  [('+', 67, 67, 16), ('<', 0, 67, 63)]  slot length =  2
+name =  flow  slots =  [('vselect', 67, 0, 67, 27)]  slot length =  1
+name =  store  slots =  [('vstore', 91, 67), ('vstore', 92, 75)]  slot length =  2
+STEP END
+instr =  {'flow': [('pause',)]}
+STEP START
+name =  flow  slots =  [('pause',)]  slot length =  1
+STEP END
+CYCLES:  28
+[1916488277, 60, 377146193, 7, 3550635053, 62, 4251993756, 112451388, 27875, 63, 14762499, 5, 6934837, 108, 531499310, 112451393]
+[2147547033, 1289906052, 4219955632, 875271795, 268803395, 3410359412, 2096059673, 127259956, 4101119283, 3073687682, 3419551621, 3452048691, 829111739, 754099671, 4272855266, 2843953937]
