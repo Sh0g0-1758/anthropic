@@ -214,9 +214,9 @@ def do_kernel_test(
             == ref_mem[inp_values_p : inp_values_p + len(inp.values)]
         ), f"Incorrect result on round {i}"
         inp_indices_p = ref_mem[5]
-        if prints:
-            print(machine.mem[inp_indices_p : inp_indices_p + len(inp.indices)])
-            print(ref_mem[inp_indices_p : inp_indices_p + len(inp.indices)])
+        # if prints:
+        print(machine.mem[inp_indices_p : inp_indices_p + len(inp.indices)])
+        print(ref_mem[inp_indices_p : inp_indices_p + len(inp.indices)])
         # Updating these in memory isn't required, but you can enable this check for debugging
         # assert machine.mem[inp_indices_p:inp_indices_p+len(inp.indices)] == ref_mem[inp_indices_p:inp_indices_p+len(inp.indices)]
 

@@ -284,12 +284,7 @@ class KernelBuilder:
                 self.instrs.append({"debug": [("vcompare", tmp_val_1, [(round, i * VLEN + k, "val") for k in range(8)] )]})
 
                 # node_val = mem[forest_values_p + idx]
-                self.instrs.append({
-                    "valu": [
-                        ("+", tmp_addr_forest_1, forest_values_base_v, tmp_idx_1),
-                        ("*", tmp_idx_1, tmp_idx_1, two_const_v)
-                    ]
-                })
+                self.instrs.append({"valu": [("+", tmp_addr_forest_1, forest_values_base_v, tmp_idx_1)]})
                 self.instrs.append({"load": [("load_offset", tmp_node_val_1, tmp_addr_forest_1, 0), ("load_offset", tmp_node_val_1, tmp_addr_forest_1, 1)]})
                 self.instrs.append({"load": [("load_offset", tmp_node_val_1, tmp_addr_forest_1, 2), ("load_offset", tmp_node_val_1, tmp_addr_forest_1, 3)]})
                 self.instrs.append({"load": [("load_offset", tmp_node_val_1, tmp_addr_forest_1, 4), ("load_offset", tmp_node_val_1, tmp_addr_forest_1, 5)]})
@@ -328,11 +323,11 @@ class KernelBuilder:
                 self.instrs.append({"debug": [("vcompare", tmp_val_1, [(round, i * VLEN + k, "hashed_val") for k in range(8)])]})
 
                 # idx = (2 * idx + 1) + (val % 2)
-                self.instrs.append({"valu": [("%", tmp1_v_1, tmp_val_1, two_const_v), ("+", tmp_idx_1, tmp_idx_1, one_const_v)]})
+                self.instrs.append({"valu": [("%", tmp1_v_1, tmp_val_1, two_const_v), ("multiply_add", tmp_idx_1, tmp_idx_1, two_const_v, one_const_v)]})
                 self.instrs.append({"valu": [("+", tmp_idx_1, tmp_idx_1, tmp1_v_1)]})
                 self.instrs.append({"debug": [("vcompare", tmp_idx_1, [(round, i * VLEN + k, "next_idx") for k in range(8)])]})
 
-                # idx = 0 if idx >= n_nodes else idx
+                # idx = idx * (idx < n)
                 self.instrs.append({"valu": [("<", tmp1_v_1, tmp_idx_1, _n_nodes_v)]})
                 self.instrs.append({"valu": [("*", tmp_idx_1, tmp1_v_1, tmp_idx_1)]})
                 self.instrs.append({"debug": [("vcompare", tmp_idx_1, [(round, i * VLEN + k, "wrapped_idx") for k in range(8)])]})
