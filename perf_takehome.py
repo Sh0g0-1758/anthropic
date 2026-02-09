@@ -248,39 +248,38 @@ class KernelBuilder:
                 alu_slots.append(("+", address_constants[2 * j + 1], _inp_values_p, iterator_constants[j]))
             
             self.instrs.append({"alu": alu_slots})
-        
+
+        input = []
+        for i in range(num_batches):
+            input.append(self.alloc_scratch(f"tmp_idx_{i}", VLEN))
+            input.append(self.alloc_scratch(f"tmp_val_{i}", VLEN))
+            
+            self.instrs.append({
+                "load": [
+                    ("vload", input[2* i]     , address_constants[2 * i]), 
+                    ("vload", input[2 * i + 1], address_constants[2 * i + 1])
+                ]
+            })
+
         scratch_registers = []
         pipeline_factor = 1
         for i in range(pipeline_factor):
-            scratch_registers.append(self.alloc_scratch(f"tmp_idx_{i}", VLEN))
-            scratch_registers.append(self.alloc_scratch(f"tmp_val_{i}", VLEN))
             scratch_registers.append(self.alloc_scratch(f"tmp_node_val_{i}", VLEN))
             scratch_registers.append(self.alloc_scratch(f"tmp_addr_forest_{i}", VLEN))
             scratch_registers.append(self.alloc_scratch(f"tmp1_v_{i}", VLEN))
-            scratch_registers.append(self.alloc_scratch(f"tmp1_v_{i}", VLEN))
+            scratch_registers.append(self.alloc_scratch(f"tmp2_v_{i}", VLEN))
 
         for round in range(rounds):
             for i in range(0, (num_batches // pipeline_factor), 1):
-                address_offset = pipeline_factor * 2 * i
+                input_offset = pipeline_factor * 2 * i
 
-                tmp_idx_1 = scratch_registers[0]
-                tmp_val_1 = scratch_registers[1]
-                tmp_node_val_1 = scratch_registers[2]
-                tmp_addr_forest_1 = scratch_registers[3]
-                tmp1_v_1 = scratch_registers[4]
-                tmp2_v_1 = scratch_registers[5]
-                
-                tmp_addr_index_1 = address_constants[address_offset]
-                tmp_addr_value_1 = address_constants[address_offset + 1]
-                
-                # idx = mem[inp_indices_p + i]
-                # val = mem[inp_values_p + i]
-                self.instrs.append({
-                    "load": [
-                        ("vload", tmp_idx_1, tmp_addr_index_1), 
-                        ("vload", tmp_val_1, tmp_addr_value_1)
-                    ]
-                })
+                tmp_idx_1 = input[input_offset]
+                tmp_val_1 = input[input_offset + 1]
+                tmp_node_val_1 = scratch_registers[0]
+                tmp_addr_forest_1 = scratch_registers[1]
+                tmp1_v_1 = scratch_registers[2]
+                tmp2_v_1 = scratch_registers[3]
+
                 self.instrs.append({"debug": [("vcompare", tmp_idx_1, [(round, i * VLEN + k, "idx") for k in range(8)] )]})
                 self.instrs.append({"debug": [("vcompare", tmp_val_1, [(round, i * VLEN + k, "val") for k in range(8)] )]})
 
@@ -339,10 +338,13 @@ class KernelBuilder:
                 self.instrs.append({"flow": [("vselect", tmp_idx_1, tmp1_v_1, tmp_idx_1, zero_const_v)]})
                 self.instrs.append({"debug": [("vcompare", tmp_idx_1, [(round, i * VLEN + k, "wrapped_idx") for k in range(8)])]})
 
-                # mem[inp_indices_p + i] = idx
-                # mem[inp_values_p + i] = val
-                self.instrs.append({"store": [("vstore", tmp_addr_index_1, tmp_idx_1), ("vstore", tmp_addr_value_1, tmp_val_1)]})
-
+        for i in range(num_batches):
+            self.instrs.append({
+                "store": [
+                    ("vstore", address_constants[2 * i], input[2 * i]), 
+                    ("vstore", address_constants[2 * i + 1], input[2 * i + 1])
+                ]
+            })
         self.instrs.append({"flow": [("pause",)]})
 
 BASELINE = 147734
