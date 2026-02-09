@@ -327,14 +327,14 @@ class KernelBuilder:
                 self.instrs.append({"valu": [("^", tmp_val_1, tmp1_v_1, tmp2_v_1)]})
                 self.instrs.append({"debug": [("vcompare", tmp_val_1, [(round, i * VLEN + k, "hashed_val") for k in range(8)])]})
 
-                # idx = 2 * idx + (1 if val % 2 == 0 else 2)
+                # idx = (2 * idx + 1) + (val % 2)
                 self.instrs.append({"valu": [("%", tmp1_v_1, tmp_val_1, two_const_v), ("+", tmp_idx_1, tmp_idx_1, one_const_v)]})
                 self.instrs.append({"valu": [("+", tmp_idx_1, tmp_idx_1, tmp1_v_1)]})
                 self.instrs.append({"debug": [("vcompare", tmp_idx_1, [(round, i * VLEN + k, "next_idx") for k in range(8)])]})
 
                 # idx = 0 if idx >= n_nodes else idx
                 self.instrs.append({"valu": [("<", tmp1_v_1, tmp_idx_1, _n_nodes_v)]})
-                self.instrs.append({"flow": [("vselect", tmp_idx_1, tmp1_v_1, tmp_idx_1, zero_const_v)]})
+                self.instrs.append({"valu": [("*", tmp_idx_1, tmp1_v_1, tmp_idx_1)]})
                 self.instrs.append({"debug": [("vcompare", tmp_idx_1, [(round, i * VLEN + k, "wrapped_idx") for k in range(8)])]})
 
         for i in range(num_batches):
